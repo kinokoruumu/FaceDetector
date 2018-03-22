@@ -6,4 +6,3 @@ chromeの検索バーで
 と入力し、`Experimental Web Platform features`を`Enabled`にする
 
 
-
