@@ -23,7 +23,7 @@
       }
       .face {
         position: absolute;
-        border: 2px solid #333;
+        /*border: 2px solid #333;*/
         transform: translate(-10%, -10%);
       }
       .face .landmark {
@@ -41,6 +41,18 @@
         border: 1px solid yellow;
       }
 
+      .face .landmark.glasses {
+        position: absolute;
+        background-image: url(../image/glasses.png);
+        -webkit-background-size: 100%;
+        background-repeat: no-repeat;
+        background-size: 100%;
+        width: 90%;
+        height: 40%;
+        -webkit-transform-origin: 50%;
+        /*transform: translate(-20%, -30%);*/
+      }
+
       button {
         border: 0;
         padding: 1rem 3rem;
@@ -52,14 +64,14 @@
 </head>
 <body>
   <button id="start" onclick="start()" class="btn btn-lg btn-primary">Start capture</button>
-  <button id="detect" onclick="detect()" class="btn btn-lg btn-primary">Detect the text</button>
+  <button id="detect" onclick="detect()" class="btn btn-lg btn-primary">Detect</button>
   <div class="wrap">
     <video id="video" width="600" height="450" autoplay=true/>
   </div>
 
   <script>
     let theStream = null;
-    let isStarted = false
+    let isStarted = false;
 
     function start() {
       navigator.mediaDevices.enumerateDevices()
@@ -87,9 +99,9 @@
 
     const faceDetector = new window.FaceDetector();
     const wrap = document.querySelector('.wrap')
+
     async function detect() {
       var video = document.getElementById('video');
-      console.log(video)
       const faces = await faceDetector.detect(video);
       drawFaces(faces)
     }
@@ -100,28 +112,7 @@
         elms[i].parentNode.removeChild(elms[i]);
       }
       faces.forEach(face => {
-        console.log(face)
-        const {width, height, top, left} = face.boundingBox;
-
-        const faceBox = document.createElement('div');
-        faceBox.classList.add('face');
-        faceBox.style.cssText = `
-          width: ${width}px;
-          height: ${height}px;
-          top: ${top}px;
-          left: ${left}px;
-        `;
-
-        face.landmarks.forEach(landmark => {
-          const el = document.createElement('div');
-          el.classList.add('landmark', landmark.type);
-          el.style.cssText = `
-            top: ${landmark.location.y - top}px;
-            left: ${landmark.location.x - left}px;
-          `;
-          faceBox.appendChild(el);
-        })
-        wrap.appendChild(faceBox);
+        renderGlassesEfect(face)
       });
     }
 
@@ -130,6 +121,53 @@
         detect()
       }
     }, 100)
+
+    function renderBoxEfect(face) {
+      const {width, height, top, left} = face.boundingBox;
+
+      const faceBox = document.createElement('div');
+      faceBox.classList.add('face');
+      faceBox.style.cssText = `
+        width: ${width}px;
+        height: ${height}px;
+        top: ${top}px;
+        left: ${left}px;
+      `;
+      face.landmarks.forEach(landmark => {
+        const el = document.createElement('div');
+        el.classList.add('landmark', landmark.type);
+        el.style.cssText = `
+          top: ${landmark.location.y - top}px;
+          left: ${landmark.location.x - left}px;
+        `;
+        faceBox.appendChild(el);
+      })
+      wrap.appendChild(faceBox);
+    }
+
+    function renderGlassesEfect(face) {
+      const {width, height, top, left} = face.boundingBox;
+
+      const faceBox = document.createElement('div');
+      faceBox.classList.add('face');
+      faceBox.style.cssText = `
+        width: ${width}px;
+        height: ${height}px;
+        top: ${top}px;
+        left: ${left}px;
+      `;
+
+      const rotate = Math.atan2(face.landmarks[0].location.y - face.landmarks[1].location.y, face.landmarks[0].location.x - face.landmarks[1].location.x) * ( 180 / Math.PI );
+      const el = document.createElement('div');
+      el.classList.add('landmark', 'glasses');
+      el.style.cssText = `
+        top: ${face.landmarks[0].location.y - top}px;
+        left: ${face.landmarks[0].location.x - left}px;
+        transform: rotate(${rotate-180}deg) translate(-30%, -30%);
+      `;
+      faceBox.appendChild(el);
+      wrap.appendChild(faceBox);
+    }
 
   </script>
 </body>
